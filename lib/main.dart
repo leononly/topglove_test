@@ -73,7 +73,7 @@ class _MyHomePageState extends State<MyHomePage> {
   };
 
   List finalData = [];
-  Map selected = {};
+  Map selected;
   @override
   void initState() {
     // TODO: implement initState
