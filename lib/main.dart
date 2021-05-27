@@ -28,58 +28,55 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
   Map data = {
-    "bus_schedule": {
-      "Night Shift": [
+    "duty_time": {
+      "Monday": [
         {
-          "schedule_trip": "Return",
-          "start_time": "06.30 am",
-          "end_time": "07.59 am"
+          "time_start": "09:25 AM",
+          "time_end": "10:25 AM",
+          "time_shift": "morning"
         },
         {
-          "schedule_trip": "Departure",
-          "start_time": "06.30 pm",
-          "end_time": "07.00 pm"
+          "time_start": "09:25 PM",
+          "time_end": "10:25 PM",
+          "time_shift": "night"
         }
       ],
-      "Night Overtime": [
+      "Tuesday": [
         {
-          "schedule_trip": "Return",
-          "start_time": "08.00 am",
-          "end_time": "08.30 am"
-        }
-      ],
-      "Morning Shift": [
-        {
-          "schedule_trip": "Departure",
-          "start_time": "05.30 am",
-          "end_time": "06.00 am"
+          "time_start": "09:30 AM",
+          "time_end": "10:30 AM",
+          "time_shift": "morning"
         },
         {
-          "schedule_trip": "Return",
-          "start_time": "06.30 pm",
-          "end_time": "07.59 pm"
+          "time_start": "09:30 PM",
+          "time_end": "10:30 PM",
+          "time_shift": "night"
         }
       ],
-      "Morning Overtime": [
+      "Wednesday": [
         {
-          "schedule_trip": "Return",
-          "start_time": "08.00 pm",
-          "end_time": "08.30 pm"
+          "time_start": "09:35 AM",
+          "time_end": "10:35 AM",
+          "time_shift": "morning"
+        },
+        {
+          "time_start": "09:35 PM",
+          "time_end": "10:35 PM",
+          "time_shift": "night"
         }
       ]
-    },
+    }
   };
 
   List finalData = [];
-  Map selected;
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
 
-    print(data['bus_schedule'].values); // arrays
+    print(data['duty_time'].values); // arrays
 
     algo();
   }
@@ -87,45 +84,18 @@ class _MyHomePageState extends State<MyHomePage> {
   void algo() {
     List schedules = [];
     //Loop through the object key value pair
-    int i = 0;
-    Map dataMap = data['bus_schedule'];
+    Map dataMap = data['duty_time'];
     dataMap.keys.toList().forEach((key) {
       print("checking the key:" + key);
-      List busSchedules = dataMap[key];
-      print("checking bus schedules" + busSchedules.toString());
+      List dutyTime = dataMap[key];
+      print("checking duty time" + dutyTime.toString());
 
-      busSchedules.forEach((busSchedule) {
-        Map obj = {...busSchedule};
-        obj["shift"] = key; //key = shift
-        double totalTime = 0;
-        String startTime = busSchedule["start_time"];
-        String endTime = busSchedule["end_time"];
-
-        print(endTime.split(' ')[0]);
-        double formattedStartTime =
-            double.parse(startTime.split(' ')[0].toString());
-        double formattedEndTime = double.parse(endTime.split(' ')[0]);
-
-        if (formattedStartTime != 12 && startTime.contains("pm")) {
-          //12pm => 12:00 in 24 hours format
-          formattedStartTime += 12.0;
-        }
-
-        if (formattedEndTime != 12 && endTime.contains("pm")) {
-          formattedEndTime += 12.0;
-        }
-
-        totalTime += formattedStartTime +
-            1 /
-                formattedEndTime /
-                1000; // + 1 / formattedEndTime as for same start time, the one with later end time will be shown first
-        obj["total_time"] = totalTime;
+      dutyTime.forEach((duty_time) {
+        Map obj = {...duty_time};
+        obj["day"] = key; //key = day
 
         //Store bus schedule into the schedules array
         schedules.add(obj);
-      });
-      schedules.sort((a, b) {
-        return a['total_time'].compareTo(b['total_time']);
       });
 
       print("checking schedules array:" + schedules.toString());
@@ -136,55 +106,34 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  Widget showResult() {
+    return Container(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ...finalData.map((e) => ListTile(
+                title: Text('${e['time_start']} to ${e['time_end']}',
+                    style: TextStyle(color: Colors.black)),
+                subtitle: Text(
+                  '(${e['day']}) [${e['time_shift']}]',
+                  style: TextStyle(color: Colors.black),
+                ),
+              ))
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: Container(
-        width: MediaQuery.of(context).size.width,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            DropdownButton<dynamic>(
-              focusColor: Colors.white,
-              value: selected,
-              elevation: 5,
-              style: TextStyle(color: Colors.white),
-              iconEnabledColor: Colors.black,
-              items: finalData.map<DropdownMenuItem>((value) {
-                return DropdownMenuItem(
-                  value: value,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('${value['start_time']} to ${value['end_time']}',
-                          style: TextStyle(color: Colors.black)),
-                      Text(
-                        '[${value['schedule_trip']}] (${value['shift']})',
-                        style: TextStyle(color: Colors.black),
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(),
-              hint: Text(
-                "Please choose a schedule",
-                style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500),
-              ),
-              onChanged: (value) {
-                print(value.toString());
-                setState(() {
-                  selected = value;
-                });
-              },
-            ),
-          ],
+      body: SingleChildScrollView(
+        child: Container(
+          width: MediaQuery.of(context).size.width,
+          child: showResult(),
         ),
       ),
     );
